@@ -2,7 +2,7 @@
 anytop
 ======
 
-A tool for viewing frequency distributions over streaming input. `Anytop`
+A tool for viewing frequency distributions over streaming input. ``anytop``
 reads input line by line, and shows the top elements in the distribution as
 they stream in.
 
@@ -17,3 +17,4 @@ Work out the relative distribution of file extensions in a source tree::
 
 		find src -type f | awk -F . '{print $NF}' | ./anytop.py
 
+Exit ``anytop`` by typing CTRL-C.
