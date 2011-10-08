@@ -26,7 +26,8 @@ from collections import defaultdict
 if os.path.exists('debug.log'):
     os.remove('debug.log')
 
-def anytop(win, debug=False):
+def anytop(win, istream=sys.stdin, debug=False):
+    "Visualize the incoming lines by their distribution."
     curses.start_color()
     curses.use_default_colors()
     if debug:
@@ -34,32 +35,30 @@ def anytop(win, debug=False):
 
     dist = defaultdict(int)
     lock = threading.Lock()
-    quit = threading.Event()
     logging.debug('Starting UI thread')
     ui = AnyTopUI(win, dist, lock)
     ui.start()
-    m = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
+
+    color_pattern = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
 
     win.nodelay(1)
 
     try:
-        for line in sys.stdin:
-            key = m.sub('', line.rstrip())
+        for line in istream:
+            # trim and remove shell colors
+            key = color_pattern.sub('', line.rstrip())
+
             logging.debug('INPUT: requesting lock')
             lock.acquire()
             logging.debug('INPUT: lock acquired')
-            try:
-                if quit.is_set():
-                    lock.release()
-                    logging.debug('INPUT: lock released')
-                    return
-                dist[key] += 1
-            finally:
-                lock.release()
-                logging.debug('INPUT: lock released')
+            dist[key] += 1
+            lock.release()
+            logging.debug('INPUT: lock released')
 
         logging.debug('INPUT: finished')
 
+        # wait for CTRL-C
+        # XXX we should display that the input was exhausted
         while True:
             time.sleep(3600)
 
