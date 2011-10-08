@@ -27,6 +27,8 @@ if os.path.exists('debug.log'):
     os.remove('debug.log')
 
 def anytop(win, debug=False):
+    curses.start_color()
+    curses.use_default_colors()
     if debug:
         logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
