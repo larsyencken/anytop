@@ -13,16 +13,19 @@ for the Varnish web accelerator.
 Usage examples
 --------------
 
-Check out which letters words normally start with::
+``anytop`` is designed to work within a shell flow, allowing you to easily
+modify the data streaming in with tools such as ``cut``, ``sed`` and ``tr``.
+Get usage help by typing ``anytop --help``. To exit ``anytop``, type CTRL-C.
 
-		cut -c 1-1 /usr/share/dict/words | tr [:upper:] [:lower:] | ./anytop.py
+
+Get the distribution of word starting with each different letter from the
+dictionary::
+
+		cut -c 1-1 /usr/share/dict/words | tr [:upper:] [:lower:] | anytop
 
 Work out the relative distribution of file extensions in a source tree::
 
-		find src -type f | awk -F . '{print $NF}' | ./anytop.py
-
-Exit ``anytop`` by typing CTRL-C.
-
+		find src -type f | awk -F . '{print $NF}' | anytop
 
 Memory usage
 ------------
@@ -31,6 +34,7 @@ Anytop uses memory proportional to the number of distinct lines in the input.
 If the input keyspace is bounded, then anytop will use limited memory, no
 matter how many lines or how long it runs.
 
-When the input keyspace is not bounded, a fixed-size window of lines can be
-used with the ``-l`` option.
+When the input keyspace is not bounded, memory use can still be bounded by
+only displaying statistics on a fixed-size window of lines with the ``-l``
+option.
 
