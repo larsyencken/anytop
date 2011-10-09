@@ -4,3 +4,6 @@
 *.orig
 *.bak
 build
+MANIFEST
+dist
+*.egg-info
