@@ -22,11 +22,16 @@ import heapq
 import re
 import logging
 from collections import defaultdict, deque
+import codecs
+import locale
+
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 COLOR_PATTERN = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
 
 def anytop(win, istream=sys.stdin):
     "Visualize the incoming lines by their distribution."
+    istream = codecs.getreader('utf8')(istream)
     _init_win(win)
     dist = defaultdict(int)
     lock = threading.Lock()
@@ -38,8 +43,10 @@ def anytop(win, istream=sys.stdin):
 
     try:
         for line in istream:
+            if ui.error:
+                return ui.error
             # trim and remove shell colors
-            key = color_pattern.sub('', line.rstrip())
+            key = color_pattern.sub(u'', line.rstrip())
 
             logging.debug('INPUT: requesting lock')
             lock.acquire()
@@ -65,8 +72,11 @@ def anytop(win, istream=sys.stdin):
         ui.stop()
         ui.join()
 
+    return ui.error
+
 def anytop_window(win, istream=sys.stdin, n=200):
     "Visualize the incoming lines by their distribution."
+    istream = codecs.getreader('utf8')(istream)
     _init_win(win)
     logging.debug('Starting UI thread %s' % repr(n))
     queue = deque([], n)
@@ -75,7 +85,9 @@ def anytop_window(win, istream=sys.stdin, n=200):
     ui.start()
     try:
         for line in istream:
-            key = COLOR_PATTERN.sub('', line.rstrip())
+            if ui.error:
+                return ui.error
+            key = COLOR_PATTERN.sub(u'', line.rstrip())
             logging.debug('INPUT: requesting lock')
             lock.acquire()
             logging.debug('INPUT: lock acquired')
@@ -97,9 +109,12 @@ def anytop_window(win, istream=sys.stdin, n=200):
         ui.stop()
         ui.join()
 
+    return ui.error
+
 def _init_win(win):
     curses.start_color()
     curses.use_default_colors()
+    curses.curs_set(0)
     win.nodelay(1)
 
 class AnyTopUI(threading.Thread):
@@ -109,6 +124,7 @@ class AnyTopUI(threading.Thread):
         self.dist = dist
         self.queue = queue
         self.lock = lock
+        self.error = None
         self._stop = threading.Event()
         super(AnyTopUI, self).__init__()
 
@@ -126,7 +142,12 @@ class AnyTopUI(threading.Thread):
             logging.debug('UI: requesting lock')
             self.lock.acquire()
             logging.debug('UI: lock acquired')
-            self.refresh_display()
+            try:
+                self.refresh_display()
+            except Exception, e:
+                self.lock.release()
+                self.error = e
+                return
             self.lock.release()
             logging.debug('UI: lock released')
             time.sleep(1)
@@ -134,6 +155,7 @@ class AnyTopUI(threading.Thread):
     def refresh_display(self):
         "Redraw the screen with the current data."
         logging.debug('UI: refreshing the display')
+        self.win.erase()
         height, width = self.win.getmaxyx()
         logging.debug('UI: size is %d x %d' % (width, height))
         if self.dist is None:
@@ -155,11 +177,14 @@ class AnyTopUI(threading.Thread):
         if largest:
             w = max(6, len(str(max(c for (c, k) in largest))))
             k_len = width - w - 4
-            template = ' %%%dd  %%s' % w
+            template = u' %%%dd  %%s' % w
             for i, (c, k) in enumerate(largest):
-                line = template % (c, k[:k_len])
-                line += ' ' * (width - len(line) - 1)
-                self.win.addstr(i + 2, 0, line)
+                line = (template % (c, k[:k_len]))[:width]
+                try:
+                    self.win.addstr(i + 2, 0, line.encode('utf8'))
+                except:
+                    raise Exception("couldn't draw: '%s'"
+                    % line.encode('utf8'))
 
         logging.debug('UI: refresh')
         self.win.refresh()
@@ -196,9 +221,12 @@ def main(argv):
         logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
     if options.window:
-        curses.wrapper(anytop_window, n=options.window)
+        err = curses.wrapper(anytop_window, n=options.window)
     else:
-        curses.wrapper(anytop)
+        err = curses.wrapper(anytop)
+
+    if err:
+        raise err
 
 #----------------------------------------------------------------------------#
 
