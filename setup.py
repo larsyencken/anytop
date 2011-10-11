@@ -11,7 +11,7 @@ from distutils.core import setup
 
 setup(
     name='anytop',
-    version='0.1.0',
+    version='0.1.1',
     description='Streaming frequency distribution viewer.',
     long_description=open('README.rst').read(),
     author='Lars Yencken',
