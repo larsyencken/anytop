@@ -27,6 +27,13 @@ Work out the relative distribution of file extensions in a source tree::
 
 		find src -type f | awk -F . '{print $NF}' | anytop
 
+See what commands you use most often in bash::
+
+    cut -d ' ' -f 1 .bash_history | xargs -n 1 basename | anytop
+
+As you can see, ``anytop`` lends itself handily to shell pipelines, allowing
+it to be useful in a wide variety of situations.
+
 Memory usage
 ------------
 
