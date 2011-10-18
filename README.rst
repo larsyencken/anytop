@@ -21,11 +21,11 @@ Get usage help by typing ``anytop --help``. To exit ``anytop``, type CTRL-C.
 Get the distribution of word starting with each different letter from the
 dictionary::
 
-		cut -c 1-1 /usr/share/dict/words | tr [:upper:] [:lower:] | anytop
+    cut -c 1-1 /usr/share/dict/words | tr [:upper:] [:lower:] | anytop
 
 Work out the relative distribution of file extensions in a source tree::
 
-		find src -type f | awk -F . '{print $NF}' | anytop
+    ack -f | fgrep . | awk -F . '{print $NF}' | anytop
 
 See what commands you use most often in bash::
 
