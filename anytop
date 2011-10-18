@@ -29,6 +29,8 @@ locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 COLOR_PATTERN = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
 
+MAX_IO_RETRIES = 2
+
 def anytop(win, istream=sys.stdin):
     "Visualize the incoming lines by their distribution."
     istream = codecs.getreader('utf8')(istream)
@@ -42,7 +44,7 @@ def anytop(win, istream=sys.stdin):
     color_pattern = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
 
     try:
-        for line in istream:
+        for line in _robust_line_iter(istream):
             if ui.error:
                 return ui.error
             # trim and remove shell colors
@@ -74,6 +76,30 @@ def anytop(win, istream=sys.stdin):
 
     return ui.error
 
+def _robust_line_iter(istream):
+    "Read lines, continuing if a blocking system call gets interrupted."
+    max_retries = MAX_IO_RETRIES
+    tries_since_success = 0
+
+    lines = iter(istream)
+    while True:
+        try:
+            l = lines.next()
+            tries_since_success = 0
+            yield l
+
+        except StopIteration:
+            break
+
+        except IOError:
+            # sometimes we can get interrupted on a blocking read
+            # let's retry a few times
+            tries_since_success += 1
+
+            if tries_since_success >= MAX_IO_RETRIES:
+                # something's really wrong
+                break
+
 def anytop_window(win, istream=sys.stdin, n=200):
     "Visualize the incoming lines by their distribution."
     istream = codecs.getreader('utf8')(istream)
@@ -84,7 +110,7 @@ def anytop_window(win, istream=sys.stdin, n=200):
     ui = AnyTopUI(win, lock, queue=queue, dist=None)
     ui.start()
     try:
-        for line in istream:
+        for line in _robust_line_iter(istream):
             if ui.error:
                 return ui.error
             key = COLOR_PATTERN.sub(u'', line.rstrip())
