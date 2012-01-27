@@ -78,9 +78,38 @@ class NumericAccumulatorTestCase(unittest.TestCase):
 
         assert set(dist).issubset(set(expected_dist))
 
+class AccumulatorTestCase(unittest.TestCase):
+    def test_basic(self):
+        data = ['a', 'a', 'b', 'c', 'a']
+        acc = accumulate.Accumulator()
+        for x in data:
+            acc.consume(x)
+
+        expected_dist = {'a': 3, 'b': 1, 'c': 1}
+        dist = acc.to_dist()
+        for k in expected_dist:
+            self.assertEqual(dist[k], expected_dist[k])
+        assert set(dist).issubset(expected_dist)
+
+class WindowAccumulatorTestCase(unittest.TestCase):
+    def test_basic(self):
+        acc = accumulate.WindowAccumulator(3)
+        for x in ['a', 'a', 'b']:
+            acc.consume(x)
+        dist = acc.to_dist()
+        self.assertEqual(dist['a'], 2)
+        self.assertEqual(dist['b'], 1)
+
+        acc.consume('c')
+        acc.consume('b')
+        dist = acc.to_dist()
+        self.assertEqual(dist['b'], 2)
+        self.assertEqual(dist['c'], 1)
+
 def suite():
     return unittest.TestSuite((
             unittest.makeSuite(FloatRangeTestCase),
+            unittest.makeSuite(NumericAccumulatorTestCase),
         ))
 
 if __name__ == '__main__':

@@ -25,16 +25,16 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-from anyutil import common
+from anyutil import common, accumulate
 
 def anytop(win, istream=sys.stdin, n=None):
     "Visualize the incoming lines by their distribution."
     istream = codecs.getreader('utf8')(istream)
     common.init_win(win)
     if n:
-        accumulator = common.WindowAccumulator(n)
+        accumulator = accumulate.WindowAccumulator(n)
     else:
-        accumulator = common.Accumulator()
+        accumulator = accumulate.Accumulator()
     lock = threading.Lock()
     logging.debug('Starting UI thread')
     ui = AnyTopUI(win, lock, accumulator)

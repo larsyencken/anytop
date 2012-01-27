@@ -11,7 +11,7 @@
 Accumulate input into a useful summary.
 """
 
-from collections import defaultdict
+from collections import defaultdict, deque
 import bisect
 import itertools
 
@@ -66,4 +66,29 @@ class NumericAccumulator(list):
             dist[bucket_index] += count
 
         return dist
+
+class Accumulator(defaultdict):
+    "Accumulate counts without end."
+    def __init__(self):
+        super(Accumulator, self).__init__(int)
+
+    def consume(self, key):
+        self[key] += 1
+
+    def to_dist(self):
+        return self
+
+class WindowAccumulator(deque):
+    "Accumulate counts within a fixed-size rolling window."
+    def __init__(self, n):
+        super(WindowAccumulator, self).__init__([], n)
+
+    def consume(self, key):
+        self.append(key)
+
+    def to_dist(self):
+        d = defaultdict(int)
+        for t in self:
+            d[t] += 1
+        return d
 
