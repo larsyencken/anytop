@@ -19,41 +19,36 @@ import curses
 import time
 import threading
 import heapq
-import re
 import logging
-from collections import defaultdict, deque
 import codecs
 import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-COLOR_PATTERN = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
+from common import robust_line_iter, Accumulator, WindowAccumulator
 
-MAX_IO_RETRIES = 2
-
-def anytop(win, istream=sys.stdin):
+def anytop(win, istream=sys.stdin, n=None):
     "Visualize the incoming lines by their distribution."
     istream = codecs.getreader('utf8')(istream)
     _init_win(win)
-    dist = defaultdict(int)
+    if n:
+        accumulator = WindowAccumulator(n)
+    else:
+        accumulator = Accumulator()
     lock = threading.Lock()
     logging.debug('Starting UI thread')
-    ui = AnyTopUI(win, lock, dist=dist)
+    ui = AnyTopUI(win, lock, accumulator)
     ui.start()
 
-    color_pattern = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
-
     try:
-        for line in _robust_line_iter(istream):
+        for line in robust_line_iter(istream):
             if ui.error:
                 return ui.error
-            # trim and remove shell colors
-            key = color_pattern.sub(u'', line.rstrip())
 
             logging.debug('INPUT: requesting lock')
             lock.acquire()
             logging.debug('INPUT: lock acquired')
-            dist[key] += 1
+            accumulator.consume(line)
             lock.release()
             logging.debug('INPUT: lock released')
 
@@ -61,67 +56,6 @@ def anytop(win, istream=sys.stdin):
 
         # wait for CTRL-C
         # XXX we should display that the input was exhausted
-        logging.debug('INPUT: exhausted')
-        while True:
-            time.sleep(3600)
-
-    except KeyboardInterrupt:
-        logging.debug('INPUT: got CTRL-C')
-        ui.stop()
-        ui.join()
-
-    finally:
-        ui.stop()
-        ui.join()
-
-    return ui.error
-
-def _robust_line_iter(istream):
-    "Read lines, continuing if a blocking system call gets interrupted."
-    max_retries = MAX_IO_RETRIES
-    tries_since_success = 0
-
-    lines = iter(istream)
-    while True:
-        try:
-            l = lines.next()
-            tries_since_success = 0
-            yield l
-
-        except StopIteration:
-            break
-
-        except IOError:
-            # sometimes we can get interrupted on a blocking read
-            # let's retry a few times
-            tries_since_success += 1
-
-            if tries_since_success >= MAX_IO_RETRIES:
-                # something's really wrong
-                break
-
-def anytop_window(win, istream=sys.stdin, n=200):
-    "Visualize the incoming lines by their distribution."
-    istream = codecs.getreader('utf8')(istream)
-    _init_win(win)
-    logging.debug('Starting UI thread %s' % repr(n))
-    queue = deque([], n)
-    lock = threading.Lock()
-    ui = AnyTopUI(win, lock, queue=queue, dist=None)
-    ui.start()
-    try:
-        for line in _robust_line_iter(istream):
-            if ui.error:
-                return ui.error
-            key = COLOR_PATTERN.sub(u'', line.rstrip())
-            logging.debug('INPUT: requesting lock')
-            lock.acquire()
-            logging.debug('INPUT: lock acquired')
-            logging.debug('INPUT: queue size %s' % len(queue))
-
-            queue.append(key)
-            lock.release()
-
         logging.debug('INPUT: exhausted')
         while True:
             time.sleep(3600)
@@ -145,10 +79,9 @@ def _init_win(win):
 
 class AnyTopUI(threading.Thread):
     'The ncurses user interface thread.'
-    def __init__(self, win, lock, dist=None, queue=None):
+    def __init__(self, win, lock, accumulator):
         self.win = win
-        self.dist = dist
-        self.queue = queue
+        self.acc = accumulator
         self.lock = lock
         self.error = None
         self._stop = threading.Event()
@@ -162,34 +95,29 @@ class AnyTopUI(threading.Thread):
         return self._stop.is_set()
 
     def run(self):
-        while True:
-            if self.stopped():
-                return
-            logging.debug('UI: requesting lock')
-            self.lock.acquire()
-            logging.debug('UI: lock acquired')
-            try:
-                self.refresh_display()
-            except Exception, e:
-                self.lock.release()
-                self.error = e
-                return
-            self.lock.release()
-            logging.debug('UI: lock released')
-            time.sleep(1)
+        try:
+            while not self.stopped():
+                logging.debug('UI: requesting lock')
 
-    def refresh_display(self):
+                self.lock.acquire()
+                logging.debug('UI: lock acquired')
+                dist = self.acc.to_dist()
+                logging.debug('UI: lock released')
+                self.lock.release()
+
+                self.refresh_display(dist)
+                time.sleep(1)
+        except Exception, e:
+            self.lock.release()
+            self.error = e
+            return
+
+    def refresh_display(self, d):
         "Redraw the screen with the current data."
         logging.debug('UI: refreshing the display')
         self.win.erase()
         height, width = self.win.getmaxyx()
         logging.debug('UI: size is %d x %d' % (width, height))
-        if self.dist is None:
-            d = defaultdict(int)
-            for t in self.queue:
-                d[t] += 1
-        else:
-            d = self.dist
 
         n = len(d)
         s = sum(d.itervalues())
@@ -247,7 +175,7 @@ def main(argv):
         logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
     if options.window:
-        err = curses.wrapper(anytop_window, n=options.window)
+        err = curses.wrapper(anytop, n=options.window)
     else:
         err = curses.wrapper(anytop)
 
