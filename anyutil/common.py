@@ -85,3 +85,18 @@ class WindowAccumulator(deque):
             d[t] += 1
         return d
 
+def get_zoom(largest, width):
+    """
+    Determine an appropriate zoom ratio so that the given value will fit
+    within width.
+    """
+    scale = 0
+    options = [1, 2, 3, 5]
+
+    while True:
+        for x in options:
+            zoom = x * (10**scale)
+            if largest / zoom <= width:
+                return zoom
+        scale += 1
+
