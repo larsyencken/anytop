@@ -25,7 +25,7 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-from common import robust_line_iter, Accumulator, WindowAccumulator
+from anyutil.common import robust_line_iter, Accumulator, WindowAccumulator
 
 def anytop(win, istream=sys.stdin, n=None):
     "Visualize the incoming lines by their distribution."
