@@ -25,23 +25,23 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-from anyutil.common import robust_line_iter, Accumulator, WindowAccumulator
+from anyutil import common
 
 def anytop(win, istream=sys.stdin, n=None):
     "Visualize the incoming lines by their distribution."
     istream = codecs.getreader('utf8')(istream)
-    _init_win(win)
+    common.init_win(win)
     if n:
-        accumulator = WindowAccumulator(n)
+        accumulator = common.WindowAccumulator(n)
     else:
-        accumulator = Accumulator()
+        accumulator = common.Accumulator()
     lock = threading.Lock()
     logging.debug('Starting UI thread')
     ui = AnyTopUI(win, lock, accumulator)
     ui.start()
 
     try:
-        for line in robust_line_iter(istream):
+        for line in common.robust_line_iter(istream):
             if ui.error:
                 return ui.error
 
@@ -70,12 +70,6 @@ def anytop(win, istream=sys.stdin, n=None):
         ui.join()
 
     return ui.error
-
-def _init_win(win):
-    curses.start_color()
-    curses.use_default_colors()
-    curses.curs_set(0)
-    win.nodelay(1)
 
 class AnyTopUI(threading.Thread):
     'The ncurses user interface thread.'

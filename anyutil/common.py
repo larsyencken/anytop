@@ -11,12 +11,19 @@
 Common methods for command-line operation.
 """
 
+import curses
 from collections import defaultdict, deque
 import re
 
 MAX_IO_RETRIES = 2
 
 _color_pattern = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
+
+def init_win(win):
+    curses.start_color()
+    curses.use_default_colors()
+    curses.curs_set(0)
+    win.nodelay(1)
 
 def robust_line_iter(istream):
     "Read lines, continuing if a blocking system call gets interrupted."
