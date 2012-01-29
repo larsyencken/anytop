@@ -17,7 +17,7 @@ setup(
     author='Lars Yencken',
     author_email='lars@yencken.org',
     url='http://bitbucket.org/larsyencken/anytop',
-    scripts=['anytop'],
+    scripts=['anytop', 'anyhist'],
     packages=['anyutil'],
     license='ISC',
 )
