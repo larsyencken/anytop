@@ -7,7 +7,7 @@
 #  Copyright 2011 Lars Yencken. All rights reserved.
 #
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='anytop',
