@@ -24,7 +24,7 @@ dictionary::
 
 .. image:: http://media.quietlyamused.org.s3.amazonaws.com/anytop/img/anytop-dict.png
 
-Looks like `s`, `p` and `c` have the most words.
+Looks like ``s``, ``p`` and ``c`` have the most words.
 
 Example: file types
 -------------------
@@ -46,8 +46,7 @@ See what commands you use most often in bash::
 
 .. image:: http://media.quietlyamused.org.s3.amazonaws.com/anytop/img/anytop-bashhist.png
 
-Developer tools `vim`, `git` and `j` (autojump) feature pretty prominently.
-Maybe I type `ls` a little too much.
+Developer tools ``vim``, ``git`` and ``j`` (autojump) feature pretty prominently.  Maybe I type ``ls`` a little too much.
 
 As you can see, ``anytop`` lends itself handily to shell pipelines, allowing
 it to be useful in a wide variety of situations.
