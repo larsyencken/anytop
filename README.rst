@@ -10,15 +10,12 @@ It reads input line by line, and shows the top elements in the distribution as
 they stream in. It is inspired by the excellent command-line tools available
 for the Varnish web accelerator.
 
-Usage examples
---------------
-
 ``anytop`` is designed to work within a shell flow, allowing you to easily
 modify the data streaming in with tools such as ``cut``, ``sed`` and ``tr``.
 Get usage help by typing ``anytop --help``. To exit ``anytop``, type CTRL-C.
 
-Dictionary words
-~~~~~~~~~~~~~~~~
+Example: dictionary words
+-------------------------
 
 Get the distribution of word starting with each different letter from the
 dictionary::
@@ -29,8 +26,8 @@ dictionary::
 
 Looks like `s`, `p` and `c` have the most words.
 
-File types
-~~~~~~~~~~
+Example: file types
+-------------------
 
 Work out the relative distribution of file extensions in a source tree::
 
@@ -40,8 +37,8 @@ Work out the relative distribution of file extensions in a source tree::
 
 Looks like a PHP codebase for a web app.
 
-Bash commands
-~~~~~~~~~~~~~
+Example: shell commands
+-----------------------
 
 See what commands you use most often in bash::
 
