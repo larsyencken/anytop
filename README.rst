@@ -23,6 +23,8 @@ dictionary::
 
     cut -c 1-1 /usr/share/dict/words | tr [:upper:] [:lower:] | anytop
 
+.. image:: http://media.quietlyamused.org.s3.amazonaws.com/anytop/img/anytop-dict.png
+
 Work out the relative distribution of file extensions in a source tree::
 
     ack -f | fgrep . | awk -F . '{print $NF}' | anytop
