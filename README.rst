@@ -17,7 +17,6 @@ Usage examples
 modify the data streaming in with tools such as ``cut``, ``sed`` and ``tr``.
 Get usage help by typing ``anytop --help``. To exit ``anytop``, type CTRL-C.
 
-
 Dictionary words
 ~~~~~~~~~~~~~~~~
 
@@ -28,6 +27,8 @@ dictionary::
 
 .. image:: http://media.quietlyamused.org.s3.amazonaws.com/anytop/img/anytop-dict.png
 
+Looks like `s`, `p` and `c` have the most words.
+
 File types
 ~~~~~~~~~~
 
@@ -37,6 +38,8 @@ Work out the relative distribution of file extensions in a source tree::
 
 .. image:: http://media.quietlyamused.org.s3.amazonaws.com/anytop/img/anytop-sourcetree.png
 
+Looks like a PHP codebase for a web app.
+
 Bash commands
 ~~~~~~~~~~~~~
 
@@ -45,6 +48,9 @@ See what commands you use most often in bash::
     cut -d ' ' -f 1 .bash_history | xargs -n 1 basename | anytop
 
 .. image:: http://media.quietlyamused.org.s3.amazonaws.com/anytop/img/anytop-bashhist.png
+
+Developer tools `vim`, `git` and `j` (autojump) feature pretty prominently.
+Maybe I type `ls` a little too much.
 
 As you can see, ``anytop`` lends itself handily to shell pipelines, allowing
 it to be useful in a wide variety of situations.
