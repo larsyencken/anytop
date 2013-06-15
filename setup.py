@@ -16,9 +16,8 @@ setup(
     long_description=open('README.rst').read(),
     author='Lars Yencken',
     author_email='lars@yencken.org',
-    url='http://bitbucket.org/larsyencken/anytop',
+    url='http://github.com/larsyencken/anytop',
     scripts=['anytop', 'anyhist'],
     packages=['anyutil'],
     license='ISC',
 )
-
