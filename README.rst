@@ -2,6 +2,8 @@
 anytop
 ======
 
+.. image:: https://travis-ci.org/larsyencken/anytop.png
+
 Overview
 --------
 
