@@ -64,3 +64,9 @@ When the input keyspace is not bounded, memory use can still be bounded by
 only displaying statistics on a fixed-size window of lines with the ``-l``
 option.
 
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/larsyencken/anytop/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
