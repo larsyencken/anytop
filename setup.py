@@ -13,7 +13,7 @@ requirements = [
 
 setup(
     name='anytop',
-    version='0.2.1',
+    version='0.3.0',
     description='Streaming frequency distribution viewer.',
     long_description=open('README.rst').read(),
     author='Lars Yencken',
