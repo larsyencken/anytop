@@ -11,11 +11,12 @@ Display a command-line histogram.
 
 import os
 import sys
-import optparse
 import threading
 import logging
 import time
 import curses
+
+import click
 
 from anytop import (
     common,
@@ -156,32 +157,15 @@ class AnyHistUI(threading.Thread):
         self.win.refresh()
 
 
-def _create_option_parser():
-    usage = """%prog [options]
-
-Reads numbers from stdin and displays a frequency histogram of them."""
-
-    parser = optparse.OptionParser(usage)
-    parser.add_option('--debug', action='store_true', dest='debug',
-                      help='Enable debug logging.')
-
-    return parser
-
-
-def main():
-    argv = sys.argv[1:]
-    parser = _create_option_parser()
-    (options, args) = parser.parse_args(argv)
-
-    if options.debug:
+@click.command()
+@click.option('--debug', is_flag=True, help='Enable debug logging.')
+def main(debug=False):
+    "Reads numbers from stdin and displays a frequency histogram of them."
+    if debug:
         if os.path.exists('debug.log'):
             os.remove('debug.log')
 
         logging.basicConfig(filename='debug.log', level=logging.DEBUG)
-
-    if args:
-        parser.print_help()
-        sys.exit(1)
 
     try:
         err = curses.wrapper(anyhist)

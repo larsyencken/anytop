@@ -11,7 +11,6 @@ Live updating frequency distributions on streaming data.
 
 import os
 import sys
-import optparse
 import curses
 import time
 import threading
@@ -20,12 +19,14 @@ import logging
 import codecs
 import locale
 
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+import click
 
 from anytop import (
     common,
     accumulate
 )
+
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
 def anytop(win, istream=sys.stdin, n=None):
@@ -142,38 +143,24 @@ class AnyTopUI(threading.Thread):
         self.win.refresh()
 
 
-def _create_option_parser():
-    usage = """%prog [options]
-
-Live updating frequency distributions on streaming data. Like top, but for any
-line-by-line input."""
-
-    parser = optparse.OptionParser(usage)
-    parser.add_option('-l', action='store', dest='window', type='int',
-                      help='Only shows stats on rolling window of n lines.')
-    parser.add_option('--debug', action='store_true', dest='debug',
-                      help='Enable debug logging.')
-
-    return parser
-
-
-def main():
-    argv = sys.argv[1:]
-    parser = _create_option_parser()
-    (options, args) = parser.parse_args(argv)
-
-    if args:
-        parser.print_help()
-        sys.exit(1)
-
-    if options.debug:
+@click.command()
+@click.option('-l', '--window', type=int, default=None,
+              help='Display stats for a rolling window of data.')
+@click.option('--debug', is_flag=True, help='Enable debug logging.')
+def main(window=None, debug=False):
+    """
+    Live updating frequency distributions on streaming data. Like top, but
+    for any line-by-line input. Pipe data in on stdin, and watch it be counted
+    in real-time.
+    """
+    if debug:
         if os.path.exists('debug.log'):
             os.remove('debug.log')
 
         logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
-    if options.window:
-        err = curses.wrapper(anytop, n=options.window)
+    if window:
+        err = curses.wrapper(anytop, n=window)
     else:
         err = curses.wrapper(anytop)
 

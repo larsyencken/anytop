@@ -6,6 +6,11 @@
 
 from setuptools import setup
 
+requirements = [
+    'click>=3.3',
+]
+
+
 setup(
     name='anytop',
     version='0.2.1',
@@ -21,6 +26,7 @@ setup(
         ],
     },
     packages=['anytop'],
+    install_requires=requirements,
     license='ISC',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
