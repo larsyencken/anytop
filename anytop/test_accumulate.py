@@ -16,6 +16,7 @@ import unittest
 import accumulate
 import random
 
+
 class FloatRangeTestCase(unittest.TestCase):
     def test_range(self):
         r = accumulate.FloatRange(0, 2, 2)
@@ -53,6 +54,7 @@ class FloatRangeTestCase(unittest.TestCase):
         self.assertEqual(frange.get_bin(6), (6.0, 7.0))
         self.assertEqual(frange.get_bin(7), None)
 
+
 class NumericAccumulatorTestCase(unittest.TestCase):
     def test_dist(self):
         data = [0, 1, 1, 2, 3, 3, 3, 4, 6, 6, 6, 7, 7, 8]
@@ -65,18 +67,19 @@ class NumericAccumulatorTestCase(unittest.TestCase):
         self.assertEqual(acc, sorted(data))
         dist = acc.get_dist(frange)
         expected_dist = {
-                None:       4,
-                (1.0, 2.0): 2,
-                (2.0, 3.0): 1,
-                (3.0, 4.0): 3,
-                (4.0, 5.0): 1,
-                (5.0, 6.0): 0,
-                (6.0, 7.0): 3,
-            }
+            None:       4,
+            (1.0, 2.0): 2,
+            (2.0, 3.0): 1,
+            (3.0, 4.0): 3,
+            (4.0, 5.0): 1,
+            (5.0, 6.0): 0,
+            (6.0, 7.0): 3,
+        }
         for k in expected_dist:
             self.assertEqual(dist[k], expected_dist[k])
 
         assert set(dist).issubset(set(expected_dist))
+
 
 class AccumulatorTestCase(unittest.TestCase):
     def test_basic(self):
@@ -90,6 +93,7 @@ class AccumulatorTestCase(unittest.TestCase):
         for k in expected_dist:
             self.assertEqual(dist[k], expected_dist[k])
         assert set(dist).issubset(expected_dist)
+
 
 class WindowAccumulatorTestCase(unittest.TestCase):
     def test_basic(self):
@@ -106,12 +110,13 @@ class WindowAccumulatorTestCase(unittest.TestCase):
         self.assertEqual(dist['b'], 2)
         self.assertEqual(dist['c'], 1)
 
+
 def suite():
     return unittest.TestSuite((
-            unittest.makeSuite(FloatRangeTestCase),
-            unittest.makeSuite(NumericAccumulatorTestCase),
-        ))
+        unittest.makeSuite(FloatRangeTestCase),
+        unittest.makeSuite(NumericAccumulatorTestCase),
+    ))
+
 
 if __name__ == '__main__':
     unittest.TextTestRunner(verbosity=1).run(suite())
-

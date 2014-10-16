@@ -3,13 +3,11 @@
 #  buffer.py
 #  anytop
 #
-#  Created by Lars Yencken on 2012-01-27.
-#  Copyright 2012 99designs. All rights reserved.
-#
 
 """
 Buffered iteration support.
 """
+
 
 class BufferedIter(object):
     def __init__(self, it):
@@ -29,7 +27,7 @@ class BufferedIter(object):
         head = self._head
         self._advance()
         return head
-    
+
     def empty(self):
         return self._empty
 
@@ -54,5 +52,3 @@ class BufferedIter(object):
         while not self.empty() and predicate(self._head):
             yield self.peek()
             self._advance()
-
-

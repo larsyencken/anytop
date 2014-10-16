@@ -1,54 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  anytop.py
+#  anyhist.py
 #  anytop
-#
-#  Created by Lars Yencken on 2011-09-22.
-#  Copyright 2011 Lars Yencken. All rights reserved.
 #
 
 """
-Live updating frequency distributions on streaming data.
+Display a command-line histogram.
 """
 
 import os
 import sys
 import optparse
-import curses
-import time
 import threading
-import heapq
 import logging
-import codecs
-import locale
+import time
+import curses
 
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+import common
+import accumulate
 
-from anyutil import common, accumulate
+BORDER_PADDING = 0.03
 
-def anytop(win, istream=sys.stdin, n=None):
-    "Visualize the incoming lines by their distribution."
-    istream = codecs.getreader('utf8')(istream)
+def anyhist(win, istream=sys.stdin, n=None):
+    "Visualize the incoming numbers by their distribution."
     common.init_win(win)
     if n:
-        accumulator = accumulate.WindowAccumulator(n)
+        raise ValueError('fixed window size not yet supported')
     else:
-        accumulator = accumulate.Accumulator()
+        accumulator = accumulate.NumericAccumulator()
     lock = threading.Lock()
     logging.debug('Starting UI thread')
-    ui = AnyTopUI(win, lock, accumulator)
+    ui = AnyHistUI(win, lock, accumulator)
     ui.start()
 
     try:
         for line in common.robust_line_iter(istream):
+            x = float(line)
+            logging.debug('INPUT: %f' % x)
+
             if ui.error:
                 return ui.error
 
             logging.debug('INPUT: requesting lock')
             lock.acquire()
             logging.debug('INPUT: lock acquired')
-            accumulator.consume(line)
+            accumulator.consume(x)
             lock.release()
             logging.debug('INPUT: lock released')
 
@@ -65,21 +62,23 @@ def anytop(win, istream=sys.stdin, n=None):
         ui.stop()
         ui.join()
 
+    except Exception, e:
+        return e
+
     finally:
         ui.stop()
         ui.join()
 
     return ui.error
 
-class AnyTopUI(threading.Thread):
-    'The ncurses user interface thread.'
+class AnyHistUI(threading.Thread):
     def __init__(self, win, lock, accumulator):
         self.win = win
         self.acc = accumulator
         self.lock = lock
         self.error = None
         self._stop = threading.Event()
-        super(AnyTopUI, self).__init__()
+        super(AnyHistUI, self).__init__()
 
     def stop(self):
         logging.debug('UI: flagged as stopped')
@@ -95,44 +94,59 @@ class AnyTopUI(threading.Thread):
 
                 self.lock.acquire()
                 logging.debug('UI: lock acquired')
-                dist = self.acc.to_dist()
-                logging.debug('UI: lock released')
+                self.refresh_display(self.acc)
                 self.lock.release()
+                logging.debug('UI: lock released')
 
-                self.refresh_display(dist)
                 time.sleep(1)
         except Exception, e:
             self.lock.release()
             self.error = e
             return
 
-    def refresh_display(self, d):
+    def refresh_display(self, acc):
         "Redraw the screen with the current data."
         logging.debug('UI: refreshing the display')
         self.win.erase()
         height, width = self.win.getmaxyx()
         logging.debug('UI: size is %d x %d' % (width, height))
 
-        n = len(d)
-        s = sum(d.itervalues())
-
-        largest_keys = heapq.nlargest(min(n, height - 2), d, key=d.__getitem__)
-        largest = [(d[l], l) for l in largest_keys]
+        n = len(acc)
 
         logging.debug('UI: redraw call')
         self.win.redrawwin()
-        self.win.addstr(0, 0, '%d keys, %d counts' % (n, s))
-        if largest:
-            w = max(6, len(str(max(c for (c, k) in largest))))
-            k_len = width - w - 4
-            template = u' %%%dd  %%s' % w
-            for i, (c, k) in enumerate(largest):
-                line = (template % (c, k[:k_len]))[:width]
-                try:
-                    self.win.addstr(i + 2, 0, line.encode('utf8'))
-                except:
-                    raise Exception("couldn't draw: '%s'"
-                    % line.encode('utf8'))
+
+        if n < 2:
+            logging.debug('UI: refresh')
+            self.win.addstr(0, 0, 'waiting for data...')
+            self.win.refresh()
+            return
+
+        min_ = min(acc)
+        max_ = max(acc)
+
+        # go a few % out either side for padding
+        diff = max_ - min_
+        min_ -= BORDER_PADDING * diff
+        max_ += BORDER_PADDING * diff
+
+        frange = accumulate.FloatRange(min_, max_, height - 2)
+        dist = acc.get_dist(frange)
+        labels = [('%g' % r[1]) for r in frange]
+
+        max_label = max(map(len, labels))
+        hist_width = width - max_label - 3
+
+        largest = max(dist.itervalues())
+        zoom = common.get_zoom(largest, hist_width)
+        logging.debug('UI: using zoom %d' % zoom)
+
+        self.win.addstr(0, 0, '%d values, 1/%d zoom' % (n, zoom))
+
+        template = '%%-%dg  %%s' % max_label
+        for i, (start, end) in enumerate(frange):
+            l = template % (end, '#'*(dist[(start, end)] / zoom))
+            self.win.addstr(i + 2, 0, l)
 
         logging.debug('UI: refresh')
         self.win.refresh()
@@ -143,24 +157,18 @@ def _create_option_parser():
     usage = \
 """%prog [options]
 
-Live updating frequency distributions on streaming data. Like top, but for any
-line-by-line input."""
+Reads numbers from stdin and displays a frequency histogram of them."""
 
     parser = optparse.OptionParser(usage)
-    parser.add_option('-l', action='store', dest='window', type='int',
-            help='Only shows stats on rolling window of n lines.')
     parser.add_option('--debug', action='store_true', dest='debug',
             help='Enable debug logging.')
 
     return parser
 
-def main(argv):
+def main():
+    argv = sys.argv[1:]
     parser = _create_option_parser()
     (options, args) = parser.parse_args(argv)
-
-    if args:
-        parser.print_help()
-        sys.exit(1)
 
     if options.debug:
         if os.path.exists('debug.log'):
@@ -168,16 +176,14 @@ def main(argv):
 
         logging.basicConfig(filename='debug.log', level=logging.DEBUG)
 
-    if options.window:
-        err = curses.wrapper(anytop, n=options.window)
-    else:
-        err = curses.wrapper(anytop)
+    if args:
+        parser.print_help()
+        sys.exit(1)
 
-    if err:
-        raise err
+    try:
+        err = curses.wrapper(anyhist)
+        if err:
+            raise err
 
-#----------------------------------------------------------------------------#
-
-if __name__ == '__main__':
-    main(sys.argv[1:])
-
+    except KeyboardInterrupt:
+        pass

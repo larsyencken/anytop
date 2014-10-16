@@ -17,8 +17,13 @@ setup(
     author='Lars Yencken',
     author_email='lars@yencken.org',
     url='http://github.com/larsyencken/anytop',
-    scripts=['anytop', 'anyhist'],
-    packages=['anyutil'],
+    entry_points={
+        'console_scripts': [
+            'anytop = anytop.top:main',
+            'anyhist = anytop.histogram:main',
+        ],
+    },
+    packages=['anytop'],
     license='ISC',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
