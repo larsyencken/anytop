@@ -4,9 +4,6 @@
 #  anyhist.py
 #  anytop
 #
-#  Created by Lars Yencken on 2012-01-27.
-#  Copyright 2012 Lars Yencken. All rights reserved.
-#
 
 """
 Display a command-line histogram.
@@ -20,9 +17,13 @@ import logging
 import time
 import curses
 
-from anyutil import common, accumulate
+from anytop import (
+    common,
+    accumulate
+)
 
 BORDER_PADDING = 0.03
+
 
 def anyhist(win, istream=sys.stdin, n=None):
     "Visualize the incoming numbers by their distribution."
@@ -64,7 +65,7 @@ def anyhist(win, istream=sys.stdin, n=None):
         ui.stop()
         ui.join()
 
-    except Exception, e:
+    except Exception as e:
         return e
 
     finally:
@@ -73,21 +74,22 @@ def anyhist(win, istream=sys.stdin, n=None):
 
     return ui.error
 
+
 class AnyHistUI(threading.Thread):
     def __init__(self, win, lock, accumulator):
         self.win = win
         self.acc = accumulator
         self.lock = lock
         self.error = None
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
         super(AnyHistUI, self).__init__()
 
     def stop(self):
         logging.debug('UI: flagged as stopped')
-        self._stop.set()
+        self._stop_event.set()
 
     def stopped(self):
-        return self._stop.is_set()
+        return self._stop_event.is_set()
 
     def run(self):
         try:
@@ -101,7 +103,7 @@ class AnyHistUI(threading.Thread):
                 logging.debug('UI: lock released')
 
                 time.sleep(1)
-        except Exception, e:
+        except Exception as e:
             self.lock.release()
             self.error = e
             return
@@ -132,7 +134,7 @@ class AnyHistUI(threading.Thread):
         min_ -= BORDER_PADDING * diff
         max_ += BORDER_PADDING * diff
 
-        frange = accumulate.FloatRange(min_, max_, height - 2) 
+        frange = accumulate.FloatRange(min_, max_, height - 2)
         dist = acc.get_dist(frange)
         labels = [('%g' % r[1]) for r in frange]
 
@@ -153,21 +155,21 @@ class AnyHistUI(threading.Thread):
         logging.debug('UI: refresh')
         self.win.refresh()
 
-#----------------------------------------------------------------------------#
 
 def _create_option_parser():
-    usage = \
-"""%prog [options]
+    usage = """%prog [options]
 
 Reads numbers from stdin and displays a frequency histogram of them."""
 
     parser = optparse.OptionParser(usage)
     parser.add_option('--debug', action='store_true', dest='debug',
-            help='Enable debug logging.')
+                      help='Enable debug logging.')
 
     return parser
 
-def main(argv):
+
+def main():
+    argv = sys.argv[1:]
     parser = _create_option_parser()
     (options, args) = parser.parse_args(argv)
 
@@ -188,9 +190,3 @@ def main(argv):
 
     except KeyboardInterrupt:
         pass
-
-#----------------------------------------------------------------------------#
-
-if __name__ == '__main__':
-    main(sys.argv[1:])
-

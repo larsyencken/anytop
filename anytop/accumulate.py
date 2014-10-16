@@ -3,9 +3,6 @@
 #  accumulate.py
 #  anytop
 #
-#  Created by Lars Yencken on 2012-01-27.
-#  Copyright 2012 Lars Yencken. All rights reserved.
-#
 
 """
 Accumulate input into a useful summary.
@@ -14,6 +11,7 @@ Accumulate input into a useful summary.
 from collections import defaultdict, deque
 import bisect
 import itertools
+
 
 class FloatRange(object):
     "A floating point range representing frequency bins."
@@ -26,18 +24,18 @@ class FloatRange(object):
 
     def _gen_bins(self):
         bins = [self.start]
-        for i in xrange(1, self.n + 1):
+        for i in range(1, self.n + 1):
             bins.append(self.start + i * self.interval)
         assert abs(bins[-1] - self.end) < 1e-6
         return bins
-    
+
     def __iter__(self):
-        for i in xrange(self.n):
+        for i in range(self.n):
             yield (self.bin_markers[i], self.bin_markers[i+1])
-    
+
     def __len__(self):
         return self.n
-    
+
     def get_bin(self, x, default=None):
         i = bisect.bisect(self.bin_markers, x)
         if i == 0:
@@ -45,6 +43,7 @@ class FloatRange(object):
         if i == len(self.bin_markers):
             return default
         return (self.bin_markers[i-1], self.bin_markers[i])
+
 
 class NumericAccumulator(list):
     def consume(self, x):
@@ -67,6 +66,7 @@ class NumericAccumulator(list):
 
         return dist
 
+
 class Accumulator(defaultdict):
     "Accumulate counts without end."
     def __init__(self):
@@ -77,6 +77,7 @@ class Accumulator(defaultdict):
 
     def to_dist(self):
         return self
+
 
 class WindowAccumulator(deque):
     "Accumulate counts within a fixed-size rolling window."
@@ -91,4 +92,3 @@ class WindowAccumulator(deque):
         for t in self:
             d[t] += 1
         return d
-

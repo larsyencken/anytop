@@ -3,13 +3,12 @@
 #  common.py
 #  anytop
 #
-#  Created by Lars Yencken on 2012-01-22.
-#  Copyright 2012 Lars Yencken. All rights reserved.
-#
 
 """
 Common methods for command-line operation.
 """
+
+from __future__ import division
 
 import curses
 import re
@@ -18,11 +17,13 @@ MAX_IO_RETRIES = 2
 
 _color_pattern = re.compile("\x1b\[[0-9]*(;[0-9]*)?m", re.UNICODE)
 
+
 def init_win(win):
     curses.start_color()
     curses.use_default_colors()
     curses.curs_set(0)
     win.nodelay(1)
+
 
 def robust_line_iter(istream):
     "Read lines, continuing if a blocking system call gets interrupted."
@@ -32,7 +33,7 @@ def robust_line_iter(istream):
     lines = unbuffered_lines(istream)
     while True:
         try:
-            l = lines.next()
+            l = next(lines)
             tries_since_success = 0
 
             # trim and remove shell colors
@@ -52,12 +53,14 @@ def robust_line_iter(istream):
                 # something's really wrong
                 break
 
+
 def unbuffered_lines(istream):
     "Read from the stream using the less-buffered readline() method."
     l = istream.readline()
     while l:
         yield l
         l = istream.readline()
+
 
 def get_zoom(largest, width):
     """
@@ -70,7 +73,6 @@ def get_zoom(largest, width):
     while True:
         for x in options:
             zoom = x * (10**scale)
-            if largest / zoom <= width:
+            if largest // zoom <= width:
                 return zoom
         scale += 1
-

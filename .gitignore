@@ -7,3 +7,5 @@ build
 MANIFEST
 dist
 *.egg-info
+.coverage
+.tox
