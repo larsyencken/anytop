@@ -3,9 +3,6 @@
 #  setup.py
 #  anytop
 #
-#  Created by Lars Yencken on 2011-10-09.
-#  Copyright 2011 Lars Yencken. All rights reserved.
-#
 
 from setuptools import setup
 

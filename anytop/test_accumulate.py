@@ -3,9 +3,6 @@
 #  test_accumulate.py
 #  anytop
 #
-#  Created by Lars Yencken on 2012-01-27.
-#  Copyright 2012 Lars Yencken. All rights reserved.
-#
 
 """
 Tests for the accumulate module.
