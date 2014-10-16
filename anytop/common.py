@@ -33,7 +33,7 @@ def robust_line_iter(istream):
     lines = unbuffered_lines(istream)
     while True:
         try:
-            l = lines.next()
+            l = next(lines)
             tries_since_success = 0
 
             # trim and remove shell colors

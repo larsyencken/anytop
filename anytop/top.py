@@ -22,13 +22,16 @@ import locale
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
-import common
-import accumulate
+from anytop import (
+    common,
+    accumulate
+)
 
 
 def anytop(win, istream=sys.stdin, n=None):
     "Visualize the incoming lines by their distribution."
-    istream = codecs.getreader('utf8')(istream)
+    if sys.version_info.major == 2:
+        istream = codecs.getreader('utf8')(istream)
     common.init_win(win)
     if n:
         accumulator = accumulate.WindowAccumulator(n)
@@ -70,6 +73,7 @@ def anytop(win, istream=sys.stdin, n=None):
 
     return ui.error
 
+
 class AnyTopUI(threading.Thread):
     'The ncurses user interface thread.'
     def __init__(self, win, lock, accumulator):
@@ -101,7 +105,7 @@ class AnyTopUI(threading.Thread):
                 self.refresh_display(dist)
                 time.sleep(1)
 
-        except Exception, e:
+        except Exception as e:
             self.lock.release()
             self.error = e
             return
@@ -114,7 +118,7 @@ class AnyTopUI(threading.Thread):
         logging.debug('UI: size is %d x %d' % (width, height))
 
         n = len(d)
-        s = sum(d.itervalues())
+        s = sum(d.values())
 
         largest_keys = heapq.nlargest(min(n, height - 2), d, key=d.__getitem__)
         largest = [(d[l], l) for l in largest_keys]
@@ -132,27 +136,26 @@ class AnyTopUI(threading.Thread):
                     self.win.addstr(i + 2, 0, line.encode('utf8'))
                 except:
                     raise Exception("couldn't draw: '%s'"
-                    % line.encode('utf8'))
+                                    % line.encode('utf8'))
 
         logging.debug('UI: refresh')
         self.win.refresh()
 
-#----------------------------------------------------------------------------#
 
 def _create_option_parser():
-    usage = \
-"""%prog [options]
+    usage = """%prog [options]
 
 Live updating frequency distributions on streaming data. Like top, but for any
 line-by-line input."""
 
     parser = optparse.OptionParser(usage)
     parser.add_option('-l', action='store', dest='window', type='int',
-            help='Only shows stats on rolling window of n lines.')
+                      help='Only shows stats on rolling window of n lines.')
     parser.add_option('--debug', action='store_true', dest='debug',
-            help='Enable debug logging.')
+                      help='Enable debug logging.')
 
     return parser
+
 
 def main():
     argv = sys.argv[1:]

@@ -22,6 +22,7 @@ import accumulate
 
 BORDER_PADDING = 0.03
 
+
 def anyhist(win, istream=sys.stdin, n=None):
     "Visualize the incoming numbers by their distribution."
     common.init_win(win)
@@ -62,7 +63,7 @@ def anyhist(win, istream=sys.stdin, n=None):
         ui.stop()
         ui.join()
 
-    except Exception, e:
+    except Exception as e:
         return e
 
     finally:
@@ -70,6 +71,7 @@ def anyhist(win, istream=sys.stdin, n=None):
         ui.join()
 
     return ui.error
+
 
 class AnyHistUI(threading.Thread):
     def __init__(self, win, lock, accumulator):
@@ -99,7 +101,7 @@ class AnyHistUI(threading.Thread):
                 logging.debug('UI: lock released')
 
                 time.sleep(1)
-        except Exception, e:
+        except Exception as e:
             self.lock.release()
             self.error = e
             return
@@ -151,19 +153,18 @@ class AnyHistUI(threading.Thread):
         logging.debug('UI: refresh')
         self.win.refresh()
 
-#----------------------------------------------------------------------------#
 
 def _create_option_parser():
-    usage = \
-"""%prog [options]
+    usage = """%prog [options]
 
 Reads numbers from stdin and displays a frequency histogram of them."""
 
     parser = optparse.OptionParser(usage)
     parser.add_option('--debug', action='store_true', dest='debug',
-            help='Enable debug logging.')
+                      help='Enable debug logging.')
 
     return parser
+
 
 def main():
     argv = sys.argv[1:]
