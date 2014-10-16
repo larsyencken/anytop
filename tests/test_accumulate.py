@@ -9,9 +9,9 @@ Tests for the accumulate module.
 """
 
 import unittest
-
-import accumulate
 import random
+
+from anytop import accumulate
 
 
 class FloatRangeTestCase(unittest.TestCase):

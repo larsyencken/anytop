@@ -8,6 +8,8 @@
 Common methods for command-line operation.
 """
 
+from __future__ import division
+
 import curses
 import re
 
@@ -71,6 +73,6 @@ def get_zoom(largest, width):
     while True:
         for x in options:
             zoom = x * (10**scale)
-            if largest / zoom <= width:
+            if largest // zoom <= width:
                 return zoom
         scale += 1

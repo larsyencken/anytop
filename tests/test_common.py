@@ -10,7 +10,7 @@ Tests for the common utilities.
 
 import unittest
 
-import common
+from anytop import common
 
 
 class ZoomTestCase(unittest.TestCase):
