@@ -2,7 +2,14 @@
 anytop
 ======
 
-.. image:: https://travis-ci.org/larsyencken/anytop.png
+.. image:: https://badge.fury.io/py/anytop.png
+    :target: http://badge.fury.io/py/anytop
+
+.. image:: https://travis-ci.org/larsyencken/anytop.png?branch=master
+        :target: https://travis-ci.org/larsyencken/anytop
+
+.. image:: https://pypip.in/d/anytop/badge.png
+        :target: https://pypi.python.org/pypi/anytop
 
 Overview
 --------
