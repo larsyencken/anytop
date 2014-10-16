@@ -81,15 +81,15 @@ class AnyTopUI(threading.Thread):
         self.acc = accumulator
         self.lock = lock
         self.error = None
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
         super(AnyTopUI, self).__init__()
 
     def stop(self):
         logging.debug('UI: flagged as stopped')
-        self._stop.set()
+        self._stop_event.set()
 
     def stopped(self):
-        return self._stop.is_set()
+        return self._stop_event.is_set()
 
     def run(self):
         try:

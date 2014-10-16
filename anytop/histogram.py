@@ -17,8 +17,10 @@ import logging
 import time
 import curses
 
-import common
-import accumulate
+from anytop import (
+    common,
+    accumulate
+)
 
 BORDER_PADDING = 0.03
 
@@ -79,15 +81,15 @@ class AnyHistUI(threading.Thread):
         self.acc = accumulator
         self.lock = lock
         self.error = None
-        self._stop = threading.Event()
+        self._stop_event = threading.Event()
         super(AnyHistUI, self).__init__()
 
     def stop(self):
         logging.debug('UI: flagged as stopped')
-        self._stop.set()
+        self._stop_event.set()
 
     def stopped(self):
-        return self._stop.is_set()
+        return self._stop_event.is_set()
 
     def run(self):
         try:
